@@ -8,3 +8,18 @@ System-level interfaces are provided in [the sys sub-module](src/sys.rs).
 
 For async clients there is a `recv_async` variant of `recv` that returns an
 awaitable future.
+
+## Contributing
+
+### Basic Checks
+
+```
+cargo fmt -- --check
+cargo clippy
+```
+
+### Testing
+
+```
+./lib/tetes/run_tests.sh
+```
