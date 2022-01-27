@@ -200,7 +200,7 @@ pub fn fd(h: DlpiHandle) -> Result<i32> {
     let ret = unsafe { sys::dlpi_fd(h.0) };
     match ret {
         -1 => Err(Error::from_raw_os_error(libc::EINVAL)),
-        _ => Ok(ret)
+        _ => Ok(ret),
     }
 }
 

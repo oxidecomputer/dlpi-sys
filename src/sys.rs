@@ -118,9 +118,7 @@ extern "C" {
     ) -> ResultCode;
 
     /// Closes the open DLPI link instance associated with the provided handle.
-    pub fn dlpi_close(
-        dh: *mut dlpi_handle,
-    );
+    pub fn dlpi_close(dh: *mut dlpi_handle);
 
     /// Attempt to send the contets of msgbuf over the DLPI link instance
     /// associated with the provided DLPI handle.
@@ -171,9 +169,7 @@ extern "C" {
 
     /// Returns a file descriptor that can be used to directly operate on the
     /// open DLPI stream associated with the provided handle.
-    pub fn dlpi_fd(
-        dh: *mut dlpi_handle,
-    ) -> i32;
+    pub fn dlpi_fd(dh: *mut dlpi_handle) -> i32;
 
 }
 
