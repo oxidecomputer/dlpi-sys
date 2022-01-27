@@ -194,3 +194,17 @@ pub fn disable_multicast(h: DlpiHandle, addr: &[u8]) -> Result<()> {
         _ => Err(Error::from_raw_os_error(ret as i32)),
     }
 }
+
+/// Get a file descriptor associated with the provided handle.
+pub fn fd(h: DlpiHandle) -> Result<i32> {
+    let ret = unsafe { sys::dlpi_fd(h.0) };
+    match ret {
+        -1 => Err(Error::from_raw_os_error(libc::EINVAL)),
+        _ => Ok(ret)
+    }
+}
+
+/// Close the provided handle.
+pub fn close(h: DlpiHandle) {
+    unsafe { sys::dlpi_close(h.0) };
+}
