@@ -5,6 +5,7 @@ use std::pin::Pin;
 use std::ptr;
 use std::task::{Context, Poll};
 
+/// System level interfaces.
 pub mod sys;
 
 /// A DLPI handle wrapper that implements `Send` and `Sync`.
