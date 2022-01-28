@@ -6,10 +6,13 @@
 //! use std::thread::spawn;
 //!
 //! fn main() -> Result<()> {
+//!     // L2 multicast address to send packets to
+//!     let mc = [0xff, 0xff, 0x00, 0x00, 0x00, 0x47];
 //!
 //!     // Open up an interface called sim0 and attach to the ethertype 0x4000
 //!     let dh_recv = dlpi::open("sim0", 0).expect("open recv");
 //!     dlpi::bind(dh_recv, 0x4000).expect("bind recv");
+//!     dlpi::enable_multicast(dh_recv, &mc).expect("enable multicast");
 //!
 //!     // strt a receiver thread
 //!     let t = spawn(move || {
