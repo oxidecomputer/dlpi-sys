@@ -103,6 +103,8 @@ pub struct DlpiRecv<'a> {
 
 /// An `async` version of [`recv`]. Calling `await` on result yields same
 /// result as [`recv`].
+///
+/// **`src` must be at least [`sys::DLPI_PHYSADDR_MAX`] in length**.
 pub fn recv_async<'a>(
     h: DlpiHandle,
     src: &'a mut [u8],
