@@ -1,3 +1,48 @@
+//! This is a crate for interacting with layer-2 network devices through DLPI.
+//! For more details on DLPI see `man dlpi` and `man libdlpi`.
+//!
+//! ```no_run
+//! use std::io::Result;
+//! use std::thread::spawn;
+//!
+//! fn main() -> Result<()> {
+//!
+//!     // Open up an interface called sim0 and attach to the ethertype 0x4000
+//!     let dh_recv = dlpi::open("sim0", 0).expect("open recv");
+//!     dlpi::bind(dh_recv, 0x4000).expect("bind recv");
+//!
+//!     // strt a receiver thread
+//!     let t = spawn(move || {
+//!
+//!         // allocated buffers for a senders L2 address and a message
+//!         let mut src = [0u8; dlpi::sys::DLPI_PHYSADDR_MAX];
+//!         let mut msg = [0; 256];
+//!
+//!         // wait for a message
+//!         let n = match dlpi::recv(dh_recv, &mut src, &mut msg, -1, None) {
+//!             Ok((_, len)) => len,
+//!             Err(e) => panic!("recv: {}", e),
+//!         };
+//!
+//!     });
+//!
+//!     // Open up an interface called sim1 and attach to ethertype 0x4000
+//!     let dh_send = dlpi::open("sim1", 0).expect("send");
+//!     dlpi::bind(dh_send, 0x4000).expect("bind");
+//!
+//!     // Send a message
+//!     let message = b"do you know the muffin man?";
+//!     dlpi::send(dh_send, &mc, &message[..], None).expect("send");
+//!
+//!     // wait on the receiver and then shut down
+//!     t.join().expect("join recv thread");
+//!     dlpi::close(dh_send);
+//!     dlpi::close(dh_recv);
+//!
+//!     Ok(())
+//! }
+//! ```
+
 use std::future::Future;
 use std::io::{Error, ErrorKind, Result};
 use std::os::raw::{c_char, c_void};
