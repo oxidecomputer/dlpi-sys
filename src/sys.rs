@@ -1,6 +1,6 @@
+use num_enum::TryFromPrimitive;
 use std::os::raw::{c_char, c_int, c_uchar, c_uint, c_void};
 use thiserror::Error;
-use num_enum::TryFromPrimitive;
 
 /// Maximum size for a physical address.
 pub const DLPI_PHYSADDR_MAX: usize = 64;
@@ -79,43 +79,43 @@ pub const DL_SYSERR: i32 = 0x04;
 #[derive(PartialEq, Error, Debug, Copy, Clone, TryFromPrimitive)]
 pub enum ResultCode {
     #[error("success")]
-    Success = 10000,  /* DLPI operation succeeded */
+    Success = 10000, /* DLPI operation succeeded */
     #[error("invalid argument")]
-    EInval,           /* invalid argument */
+    EInval, /* invalid argument */
     #[error("invalid link name")]
-    ELinkNameInval,   /* invalid DLPI linkname */
+    ELinkNameInval, /* invalid DLPI linkname */
     #[error("link does not exist")]
-    ENoLink,          /* DLPI link does not exist */
+    ENoLink, /* DLPI link does not exist */
     #[error("bad link")]
-    EBadLink,         /* bad DLPI link */
+    EBadLink, /* bad DLPI link */
     #[error("invalid handle")]
-    EInHandle,        /* invalid DLPI handle */
+    EInHandle, /* invalid DLPI handle */
     #[error("operation timed out")]
-    ETimedout,        /* DLPI operation timed out */
+    ETimedout, /* DLPI operation timed out */
     #[error("unsupported version")]
-    EVerNotSup,       /* unsupported DLPI Version */
+    EVerNotSup, /* unsupported DLPI Version */
     #[error("unsupported connection mode")]
-    EModeNotSup,      /* unsupported DLPI connection mode */
+    EModeNotSup, /* unsupported DLPI connection mode */
     #[error("unavailable service access point")]
-    EUnavailSAP,      /* unavailable DLPI SAP */
+    EUnavailSAP, /* unavailable DLPI SAP */
     #[error("failure")]
-    Failure,          /* DLPI operation failed */
+    Failure, /* DLPI operation failed */
     #[error("style-2 node reports style-1")]
-    ENotStyle2,       /* DLPI style-2 node reports style-1 */
+    ENotStyle2, /* DLPI style-2 node reports style-1 */
     #[error("bad message")]
-    EBadMsg,          /* bad DLPI message */
+    EBadMsg, /* bad DLPI message */
     #[error("raw mode not supported")]
-    ERawNotSup,       /* DLPI raw mode not supported */
+    ERawNotSup, /* DLPI raw mode not supported */
     #[error("invalid notification type")]
-    ENoteInval,       /* invalid DLPI notification type */
+    ENoteInval, /* invalid DLPI notification type */
     #[error("notification not supported by link")]
-    ENoteNotSup,      /* DLPI notification not supported by link */
+    ENoteNotSup, /* DLPI notification not supported by link */
     #[error("invalid notification id")]
-    ENoteIdInval,     /* invalid DLPI notification id */
+    ENoteIdInval, /* invalid DLPI notification id */
     #[error("ipnetinfo not supported")]
     EIpNetInfoNotSup, /* DLPI_IPNETINFO not supported */
     #[error("error max")]
-    ErrMax,           /* Highest + 1 libdlpi error code */
+    ErrMax, /* Highest + 1 libdlpi error code */
 }
 
 /// Opaque handle to a DLPI link instance.

@@ -1,5 +1,5 @@
 use std::future::Future;
-use std::io::{Error, Result, ErrorKind};
+use std::io::{Error, ErrorKind, Result};
 use std::os::raw::{c_char, c_void};
 use std::pin::Pin;
 use std::ptr;
@@ -136,16 +136,13 @@ impl<'a> Future for DlpiRecv<'a> {
         };
 
         if ret == sys::ResultCode::Success as i32 {
-            return Poll::Ready(Ok((src_read, msg_read)));
+            Poll::Ready(Ok((src_read, msg_read)))
+        } else if ret == sys::ResultCode::ETimedout as i32 {
+            cx.waker().wake_by_ref();
+            Poll::Pending
+        } else {
+            Poll::Ready(Err(to_io_error(ret)))
         }
-        if ret == sys::ResultCode::ETimedout as i32 {
-                cx.waker().wake_by_ref();
-                return Poll::Pending
-        }
-        else {
-            return Poll::Ready(Err(to_io_error(ret)));
-        }
-
     }
 }
 
@@ -204,7 +201,6 @@ pub fn close(h: DlpiHandle) {
 }
 
 fn check_return(ret: i32) -> Result<()> {
-    
     println!("checking {}", ret);
 
     if ret == sys::ResultCode::Success as i32 {
@@ -212,7 +208,6 @@ fn check_return(ret: i32) -> Result<()> {
     }
 
     Err(to_io_error(ret))
-
 }
 
 fn to_io_error(ret: i32) -> Error {
@@ -224,7 +219,6 @@ fn to_io_error(ret: i32) -> Error {
         Ok(rc) => Error::new(ErrorKind::Other, rc),
         Err(_) => Error::from_raw_os_error(ret),
     }
-
 }
 
 #[cfg(test)]

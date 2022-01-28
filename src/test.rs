@@ -1,12 +1,11 @@
 use crate as dlpi;
+use pretty_hex::{HexConfig, PrettyHex};
 use std::io::Result;
 use std::thread::spawn;
-use pretty_hex::{HexConfig, PrettyHex};
 
 #[test]
 fn test_loopback_send_recv() -> Result<()> {
-
-    let mc = [0xff,0xff,0x00,0x00,0x00,0x47];
+    let mc = [0xff, 0xff, 0x00, 0x00, 0x00, 0x47];
 
     let dh_recv = dlpi::open("sim0", 0).expect("open recv");
     dlpi::bind(dh_recv, 0x4000).expect("bind recv");
@@ -16,7 +15,7 @@ fn test_loopback_send_recv() -> Result<()> {
 
     let t = spawn(move || {
         let mut src = [0u8; dlpi::sys::DLPI_PHYSADDR_MAX];
-        let mut msg = [0;256];
+        let mut msg = [0; 256];
         let n = match dlpi::recv(dh_recv, &mut src, &mut msg, -1, None) {
             Ok((_, len)) => len,
             Err(e) => panic!("recv: {}", e),
