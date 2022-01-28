@@ -21,4 +21,4 @@ cargo fmt -- --check
 cargo clippy
 
 banner test
-# TODO
+./run_tests.sh

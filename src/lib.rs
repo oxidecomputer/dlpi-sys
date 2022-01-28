@@ -1,5 +1,5 @@
 use std::future::Future;
-use std::io::{Error, Result};
+use std::io::{Error, Result, ErrorKind};
 use std::os::raw::{c_char, c_void};
 use std::pin::Pin;
 use std::ptr;
@@ -26,10 +26,8 @@ pub fn open(linkname: impl AsRef<str>, flags: u32) -> Result<DlpiHandle> {
             flags,
         )
     };
-    match ret {
-        sys::ResultCode::Success => Ok(DlpiHandle(dhp)),
-        _ => Err(Error::from_raw_os_error(ret as i32)),
-    }
+    check_return(ret)?;
+    Ok(DlpiHandle(dhp))
 }
 
 /// Send a message over a DLPI link.
@@ -53,10 +51,8 @@ pub fn send(
         )
     };
 
-    match ret {
-        sys::ResultCode::Success => Ok(()),
-        _ => Err(Error::from_raw_os_error(ret as i32)),
-    }
+    check_return(ret)?;
+    Ok(())
 }
 
 /// Receive a message from a DLPI link.
@@ -66,6 +62,8 @@ pub fn send(
 ///
 /// If no message is received within `msec` milliseconds, returns
 /// [`sys::ResultCode::ETimedout`].
+///
+/// **`src` must be at least [`sys::DLPI_PHYSADDR_MAX`] in length**.
 pub fn recv(
     h: DlpiHandle,
     src: &mut [u8],
@@ -90,10 +88,8 @@ pub fn recv(
         )
     };
 
-    match ret {
-        sys::ResultCode::Success => Ok((src_read, msg_read)),
-        _ => Err(Error::from_raw_os_error(ret as i32)),
-    }
+    check_return(ret)?;
+    Ok((src_read, msg_read))
 }
 
 /// A receiver object returned from [`recv_async`] wrapped in a future. Calling
@@ -139,14 +135,17 @@ impl<'a> Future for DlpiRecv<'a> {
             )
         };
 
-        match ret {
-            sys::ResultCode::Success => Poll::Ready(Ok((src_read, msg_read))),
-            sys::ResultCode::ETimedout => {
-                cx.waker().wake_by_ref();
-                Poll::Pending
-            }
-            _ => Poll::Ready(Err(Error::from_raw_os_error(ret as i32))),
+        if ret == sys::ResultCode::Success as i32 {
+            return Poll::Ready(Ok((src_read, msg_read)));
         }
+        if ret == sys::ResultCode::ETimedout as i32 {
+                cx.waker().wake_by_ref();
+                return Poll::Pending
+        }
+        else {
+            return Poll::Ready(Err(to_io_error(ret)));
+        }
+
     }
 }
 
@@ -158,10 +157,8 @@ pub fn bind(h: DlpiHandle, sap: u32) -> Result<u32> {
     let mut bound_sap = 0;
     let ret = unsafe { sys::dlpi_bind(h.0, sap, &mut bound_sap) };
 
-    match ret {
-        sys::ResultCode::Success => Ok(bound_sap),
-        _ => Err(Error::from_raw_os_error(ret as i32)),
-    }
+    check_return(ret)?;
+    Ok(bound_sap)
 }
 
 /// Enable reception of messages destined to the provided layer-2 address.
@@ -174,10 +171,8 @@ pub fn enable_multicast(h: DlpiHandle, addr: &[u8]) -> Result<()> {
         sys::dlpi_enabmulti(h.0, addr.as_ptr() as *const c_void, addr.len())
     };
 
-    match ret {
-        sys::ResultCode::Success => Ok(()),
-        _ => Err(Error::from_raw_os_error(ret as i32)),
-    }
+    check_return(ret)?;
+    Ok(())
 }
 
 /// Disable reception of messages destined to the provided layer-2 address.
@@ -190,10 +185,8 @@ pub fn disable_multicast(h: DlpiHandle, addr: &[u8]) -> Result<()> {
         sys::dlpi_disabmulti(h.0, addr.as_ptr() as *const c_void, addr.len())
     };
 
-    match ret {
-        sys::ResultCode::Success => Ok(()),
-        _ => Err(Error::from_raw_os_error(ret as i32)),
-    }
+    check_return(ret)?;
+    Ok(())
 }
 
 /// Get a file descriptor associated with the provided handle.
@@ -209,3 +202,30 @@ pub fn fd(h: DlpiHandle) -> Result<i32> {
 pub fn close(h: DlpiHandle) {
     unsafe { sys::dlpi_close(h.0) };
 }
+
+fn check_return(ret: i32) -> Result<()> {
+    
+    println!("checking {}", ret);
+
+    if ret == sys::ResultCode::Success as i32 {
+        return Ok(());
+    }
+
+    Err(to_io_error(ret))
+
+}
+
+fn to_io_error(ret: i32) -> Error {
+    if ret == sys::DL_SYSERR {
+        return Error::last_os_error();
+    }
+
+    match sys::ResultCode::try_from(ret) {
+        Ok(rc) => Error::new(ErrorKind::Other, rc),
+        Err(_) => Error::from_raw_os_error(ret),
+    }
+
+}
+
+#[cfg(test)]
+mod test;

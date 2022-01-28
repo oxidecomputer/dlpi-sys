@@ -1,4 +1,6 @@
 use std::os::raw::{c_char, c_int, c_uchar, c_uint, c_void};
+use thiserror::Error;
+use num_enum::TryFromPrimitive;
 
 /// Maximum size for a physical address.
 pub const DLPI_PHYSADDR_MAX: usize = 64;
@@ -69,28 +71,50 @@ pub struct dl_priority_t {
     pub max: u32,
 }
 
+/// Indicates a non-DLPI specific system error in a DLPI call.
+pub const DL_SYSERR: i32 = 0x04;
+
 /// Result of a DLPI operation.
-#[repr(C)]
-#[derive(PartialEq, Debug)]
+#[repr(i32)]
+#[derive(PartialEq, Error, Debug, Copy, Clone, TryFromPrimitive)]
 pub enum ResultCode {
+    #[error("success")]
     Success = 10000,  /* DLPI operation succeeded */
+    #[error("invalid argument")]
     EInval,           /* invalid argument */
+    #[error("invalid link name")]
     ELinkNameInval,   /* invalid DLPI linkname */
+    #[error("link does not exist")]
     ENoLink,          /* DLPI link does not exist */
+    #[error("bad link")]
     EBadLink,         /* bad DLPI link */
+    #[error("invalid handle")]
     EInHandle,        /* invalid DLPI handle */
+    #[error("operation timed out")]
     ETimedout,        /* DLPI operation timed out */
+    #[error("unsupported version")]
     EVerNotSup,       /* unsupported DLPI Version */
+    #[error("unsupported connection mode")]
     EModeNotSup,      /* unsupported DLPI connection mode */
+    #[error("unavailable service access point")]
     EUnavailSAP,      /* unavailable DLPI SAP */
+    #[error("failure")]
     Failure,          /* DLPI operation failed */
+    #[error("style-2 node reports style-1")]
     ENotStyle2,       /* DLPI style-2 node reports style-1 */
+    #[error("bad message")]
     EBadMsg,          /* bad DLPI message */
+    #[error("raw mode not supported")]
     ERawNotSup,       /* DLPI raw mode not supported */
+    #[error("invalid notification type")]
     ENoteInval,       /* invalid DLPI notification type */
+    #[error("notification not supported by link")]
     ENoteNotSup,      /* DLPI notification not supported by link */
+    #[error("invalid notification id")]
     ENoteIdInval,     /* invalid DLPI notification id */
+    #[error("ipnetinfo not supported")]
     EIpNetInfoNotSup, /* DLPI_IPNETINFO not supported */
+    #[error("error max")]
     ErrMax,           /* Highest + 1 libdlpi error code */
 }
 
@@ -115,7 +139,7 @@ extern "C" {
         linkname: *const c_char,
         dhp: *mut *mut dlpi_handle,
         flags: c_uint,
-    ) -> ResultCode;
+    ) -> i32;
 
     /// Closes the open DLPI link instance associated with the provided handle.
     pub fn dlpi_close(dh: *mut dlpi_handle);
@@ -129,7 +153,7 @@ extern "C" {
         msgbuf: *const c_void,
         msglen: usize,
         sendp: *const dlpi_sendinfo_t,
-    ) -> ResultCode;
+    ) -> i32;
 
     /// Attempt to receive data messages over the DLIP link instance associated
     /// with the provided DLPI handle.
@@ -141,7 +165,7 @@ extern "C" {
         msglenp: *mut usize,
         msec: c_int,
         recvp: *mut dlpi_recvinfo_t,
-    ) -> ResultCode;
+    ) -> i32;
 
     /// Attempt to bind the provided DLPI handle to the service access point
     /// `sap`.
@@ -149,7 +173,7 @@ extern "C" {
         dh: *mut dlpi_handle,
         sap: c_uint,
         boundsap: *mut c_uint,
-    ) -> ResultCode;
+    ) -> i32;
 
     /// Enable reception of messages destined to the multicast address pointed
     /// to by addrp.
@@ -157,7 +181,7 @@ extern "C" {
         dh: *mut dlpi_handle,
         addrp: *const c_void,
         addrlen: usize,
-    ) -> ResultCode;
+    ) -> i32;
 
     /// Disable reception of messages destined to the multicast address pointed
     /// to by addrp.
@@ -165,7 +189,7 @@ extern "C" {
         dh: *mut dlpi_handle,
         addrp: *const c_void,
         addrlen: usize,
-    ) -> ResultCode;
+    ) -> i32;
 
     /// Returns a file descriptor that can be used to directly operate on the
     /// open DLPI stream associated with the provided handle.
