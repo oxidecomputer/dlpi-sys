@@ -62,6 +62,19 @@ pub struct DlpiHandle(pub *mut sys::dlpi_handle);
 unsafe impl Send for DlpiHandle {}
 unsafe impl Sync for DlpiHandle {}
 
+pub struct DropHandle(pub DlpiHandle);
+impl Drop for DropHandle {
+    fn drop(&mut self) {
+        close(self.0);
+    }
+}
+
+impl DropHandle {
+    pub fn fd(&self) -> Result<i32> {
+        fd(self.0)
+    }
+}
+
 /// Creates a DLPI link instance.
 pub fn open(linkname: impl AsRef<str>, flags: u32) -> Result<DlpiHandle> {
     let linkname = format!("{}\0", linkname.as_ref());
