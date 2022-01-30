@@ -62,14 +62,17 @@ pub struct DlpiHandle(pub *mut sys::dlpi_handle);
 unsafe impl Send for DlpiHandle {}
 unsafe impl Sync for DlpiHandle {}
 
+/// A wrapper for DlpiHandle that closes the DLPI instance when dropped.
 pub struct DropHandle(pub DlpiHandle);
 impl Drop for DropHandle {
+    /// Closes underlying DLPI instance.
     fn drop(&mut self) {
         close(self.0);
     }
 }
 
 impl DropHandle {
+    /// Get the filesystem descriptor associated with this drop handle.
     pub fn fd(&self) -> Result<i32> {
         fd(self.0)
     }
