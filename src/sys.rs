@@ -201,17 +201,11 @@ extern "C" {
 
     /// Enable promiscuous mode for the specified handle. See DL_PROMISC_*
     /// for levels.
-    pub fn dlpi_promiscon(
-        dh: *mut dlpi_handle,
-        level: c_uint,
-    ) -> i32;
+    pub fn dlpi_promiscon(dh: *mut dlpi_handle, level: c_uint) -> i32;
 
     /// Disable promiscuous mode for the specified handle. See DL_PROMISC_*
     /// for levels.
-    pub fn dlpi_promiscoff(
-        dh: *mut dlpi_handle,
-        level: c_uint,
-    ) -> i32;
+    pub fn dlpi_promiscoff(dh: *mut dlpi_handle, level: c_uint) -> i32;
 
     /// Returns a file descriptor that can be used to directly operate on the
     /// open DLPI stream associated with the provided handle.
