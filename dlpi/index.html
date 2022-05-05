@@ -1,0 +1,75 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="This is a crate for interacting with layer-2 network devices through DLPI. For more details on DLPI see `man dlpi` and `man libdlpi`."><meta name="keywords" content="rust, rustlang, rust-lang, dlpi"><title>dlpi - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../dark.css" disabled><link rel="stylesheet" type="text/css" href="../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../storage.js"></script><script src="../crates.js"></script><script defer src="../main.js"></script>
+    <noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../favicon.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../dlpi/index.html"><div class="logo-container"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></div>
+        </a><h2 class="location"></h2>
+    </nav>
+    <nav class="sidebar"><a class="sidebar-logo" href="../dlpi/index.html"><div class="logo-container"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></div>
+        </a><h2 class="location"><a href="#">Crate dlpi</a></h2><div class="sidebar-elems"><div class="block"><ul><li class="version">Version 0.1.0</li><li><a id="all-types" href="all.html">All Items</a></li></div></ul><section><div class="block"><ul><li><a href="#modules">Modules</a></li><li><a href="#structs">Structs</a></li><li><a href="#functions">Functions</a></li></ul></div></section><div id="sidebar-vars" data-name="dlpi" data-ty="mod" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../dlpi/index.html"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="main-heading">
+    <h1 class="fqn"><span class="in-band">Crate <a class="mod" href="#">dlpi</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span></h1><span class="out-of-band"><a class="srclink" href="../src/dlpi/lib.rs.html#1-311">source</a> · <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>This is a crate for interacting with layer-2 network devices through DLPI.
+For more details on DLPI see <code>man dlpi</code> and <code>man libdlpi</code>.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">std::io::Result</span>;
+<span class="kw">use</span> <span class="ident">std::thread::spawn</span>;
+
+<span class="kw">fn</span> <span class="ident">main</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="comment">// L2 multicast address to send packets to</span>
+    <span class="kw">let</span> <span class="ident">mc</span> <span class="op">=</span> [<span class="number">0xff</span>, <span class="number">0xff</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x47</span>];
+
+    <span class="comment">// Open up an interface called sim0 and attach to the ethertype 0x4000</span>
+    <span class="kw">let</span> <span class="ident">dh_recv</span> <span class="op">=</span> <span class="ident">dlpi::open</span>(<span class="string">&quot;sim0&quot;</span>, <span class="number">0</span>).<span class="ident">expect</span>(<span class="string">&quot;open recv&quot;</span>);
+    <span class="ident">dlpi::bind</span>(<span class="ident">dh_recv</span>, <span class="number">0x4000</span>).<span class="ident">expect</span>(<span class="string">&quot;bind recv&quot;</span>);
+    <span class="ident">dlpi::enable_multicast</span>(<span class="ident">dh_recv</span>, <span class="kw-2">&amp;</span><span class="ident">mc</span>).<span class="ident">expect</span>(<span class="string">&quot;enable multicast&quot;</span>);
+
+    <span class="comment">// strt a receiver thread</span>
+    <span class="kw">let</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">spawn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
+
+        <span class="comment">// allocated buffers for a senders L2 address and a message</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">src</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="ident">dlpi::sys::DLPI_PHYSADDR_MAX</span>];
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">256</span>];
+
+        <span class="comment">// wait for a message</span>
+        <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">dlpi::recv</span>(<span class="ident">dh_recv</span>, <span class="kw-2">&amp;mut</span> <span class="ident">src</span>, <span class="kw-2">&amp;mut</span> <span class="ident">msg</span>, <span class="op">-</span><span class="number">1</span>, <span class="prelude-val">None</span>) {
+            <span class="prelude-val">Ok</span>((<span class="kw">_</span>, <span class="ident">len</span>)) =&gt; <span class="ident">len</span>,
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;recv: {}&quot;</span>, <span class="ident">e</span>),
+        };
+
+    });
+
+    <span class="comment">// Open up an interface called sim1 and attach to ethertype 0x4000</span>
+    <span class="kw">let</span> <span class="ident">dh_send</span> <span class="op">=</span> <span class="ident">dlpi::open</span>(<span class="string">&quot;sim1&quot;</span>, <span class="number">0</span>).<span class="ident">expect</span>(<span class="string">&quot;send&quot;</span>);
+    <span class="ident">dlpi::bind</span>(<span class="ident">dh_send</span>, <span class="number">0x4000</span>).<span class="ident">expect</span>(<span class="string">&quot;bind&quot;</span>);
+
+    <span class="comment">// Send a message</span>
+    <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="string">b&quot;do you know the muffin man?&quot;</span>;
+    <span class="ident">dlpi::send</span>(<span class="ident">dh_send</span>, <span class="kw-2">&amp;</span><span class="ident">mc</span>, <span class="kw-2">&amp;</span><span class="ident">message</span>[..], <span class="prelude-val">None</span>).<span class="ident">expect</span>(<span class="string">&quot;send&quot;</span>);
+
+    <span class="comment">// wait on the receiver and then shut down</span>
+    <span class="ident">t</span>.<span class="ident">join</span>().<span class="ident">expect</span>(<span class="string">&quot;join recv thread&quot;</span>);
+    <span class="ident">dlpi::close</span>(<span class="ident">dh_send</span>);
+    <span class="ident">dlpi::close</span>(<span class="ident">dh_recv</span>);
+
+    <span class="prelude-val">Ok</span>(())
+}</code></pre></div>
+</div></details><h2 id="modules" class="small-section-header"><a href="#modules">Modules</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="mod" href="sys/index.html" title="dlpi::sys mod">sys</a></div><div class="item-right docblock-short"><p>System level interfaces.</p>
+</div></div></div><h2 id="structs" class="small-section-header"><a href="#structs">Structs</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.DlpiHandle.html" title="dlpi::DlpiHandle struct">DlpiHandle</a></div><div class="item-right docblock-short"><p>A DLPI handle wrapper that implements <code>Send</code> and <code>Sync</code>.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.DlpiRecv.html" title="dlpi::DlpiRecv struct">DlpiRecv</a></div><div class="item-right docblock-short"><p>A receiver object returned from <a href="fn.recv_async.html" title="recv_async"><code>recv_async</code></a> wrapped in a future. Calling
+<code>await</code> on this object yields the same result as <a href="fn.recv.html" title="recv"><code>recv</code></a>.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.DropHandle.html" title="dlpi::DropHandle struct">DropHandle</a></div><div class="item-right docblock-short"><p>A wrapper for DlpiHandle that closes the DLPI instance when dropped.</p>
+</div></div></div><h2 id="functions" class="small-section-header"><a href="#functions">Functions</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.bind.html" title="dlpi::bind fn">bind</a></div><div class="item-right docblock-short"><p>Bind a DLPI link to a service access point type.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.close.html" title="dlpi::close fn">close</a></div><div class="item-right docblock-short"><p>Close the provided handle.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.disable_multicast.html" title="dlpi::disable_multicast fn">disable_multicast</a></div><div class="item-right docblock-short"><p>Disable reception of messages destined to the provided layer-2 address.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.enable_multicast.html" title="dlpi::enable_multicast fn">enable_multicast</a></div><div class="item-right docblock-short"><p>Enable reception of messages destined to the provided layer-2 address.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.fd.html" title="dlpi::fd fn">fd</a></div><div class="item-right docblock-short"><p>Get a file descriptor associated with the provided handle.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.open.html" title="dlpi::open fn">open</a></div><div class="item-right docblock-short"><p>Creates a DLPI link instance.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.promisc_off.html" title="dlpi::promisc_off fn">promisc_off</a></div><div class="item-right docblock-short"><p>Disable promiscuous mode for the specified handle. See DL_PROMISC_* for
+levels.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.promisc_on.html" title="dlpi::promisc_on fn">promisc_on</a></div><div class="item-right docblock-short"><p>Enable promiscuous mode for the specified handle. See DL_PROMISC_* for
+levels.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.recv.html" title="dlpi::recv fn">recv</a></div><div class="item-right docblock-short"><p>Receive a message from a DLPI link.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.recv_async.html" title="dlpi::recv_async fn">recv_async</a></div><div class="item-right docblock-short"><p>An <code>async</code> version of <a href="fn.recv.html" title="recv"><code>recv</code></a>. Calling <code>await</code> on result yields same
+result as <a href="fn.recv.html" title="recv"><code>recv</code></a>.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.send.html" title="dlpi::send fn">send</a></div><div class="item-right docblock-short"><p>Send a message over a DLPI link.</p>
+</div></div></div></section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../" data-current-crate="dlpi" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0 (7737e0b5c 2022-04-04)" ></div>
+</body></html>
