@@ -252,6 +252,26 @@ pub fn disable_multicast(h: DlpiHandle, addr: &[u8]) -> Result<()> {
     Ok(())
 }
 
+/// Enable promiscuous mode for the specified handle. See DL_PROMISC_* for
+/// levels.
+pub fn promisc_on(h: DlpiHandle, level: u32) -> Result<()> {
+    let ret = unsafe { sys::dlpi_promiscon(h.0, level) };
+    match ret {
+        -1 => Err(Error::from_raw_os_error(libc::EINVAL)),
+        _ => Ok(()),
+    }
+}
+
+/// Disable promiscuous mode for the specified handle. See DL_PROMISC_* for
+/// levels.
+pub fn promisc_off(h: DlpiHandle, level: u32) -> Result<()> {
+    let ret = unsafe { sys::dlpi_promiscoff(h.0, level) };
+    match ret {
+        -1 => Err(Error::from_raw_os_error(libc::EINVAL)),
+        _ => Ok(()),
+    }
+}
+
 /// Get a file descriptor associated with the provided handle.
 pub fn fd(h: DlpiHandle) -> Result<i32> {
     let ret = unsafe { sys::dlpi_fd(h.0) };

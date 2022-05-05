@@ -25,6 +25,14 @@ pub const DLPI_DEVONLY: c_uint = 0x0040;
 pub const DLPI_DEVIPNET: c_uint = 0x0080;
 /// Request ipnetinfo headers.
 pub const DLPI_IPNETINFO: c_uint = 0x0100;
+/// Promiscuous mode at the phys level
+pub const DL_PROMISC_PHYS: c_uint = 0x01;
+/// Promiscuous mode at the sap level
+pub const DL_PROMISC_SAP: c_uint = 0x02;
+/// Promiscuous mode for multicast
+pub const DL_PROMISC_MULTI: c_uint = 0x03;
+/// Promiscuous mode for rx only
+pub const DL_PROMISC_RX_ONLY: c_uint = 0x04;
 
 /// Information used to send DLPI traffic.
 #[repr(C)]
@@ -189,6 +197,20 @@ extern "C" {
         dh: *mut dlpi_handle,
         addrp: *const c_void,
         addrlen: usize,
+    ) -> i32;
+
+    /// Enable promiscuous mode for the specified handle. See DL_PROMISC_*
+    /// for levels.
+    pub fn dlpi_promiscon(
+        dh: *mut dlpi_handle,
+        level: c_uint,
+    ) -> i32;
+
+    /// Disable promiscuous mode for the specified handle. See DL_PROMISC_*
+    /// for levels.
+    pub fn dlpi_promiscoff(
+        dh: *mut dlpi_handle,
+        level: c_uint,
     ) -> i32;
 
     /// Returns a file descriptor that can be used to directly operate on the
