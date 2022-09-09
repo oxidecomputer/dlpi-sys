@@ -84,7 +84,7 @@ pub const DL_SYSERR: i32 = 0x04;
 
 /// Result of a DLPI operation.
 #[repr(i32)]
-#[derive(PartialEq, Error, Debug, Copy, Clone, TryFromPrimitive)]
+#[derive(PartialEq, Eq, Error, Debug, Copy, Clone, TryFromPrimitive)]
 pub enum ResultCode {
     #[error("success")]
     Success = 10000, /* DLPI operation succeeded */

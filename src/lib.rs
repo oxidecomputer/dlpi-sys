@@ -169,13 +169,28 @@ pub struct DlpiRecv<'a> {
 /// result as [`recv`].
 ///
 /// **`src` must be at least [`sys::DLPI_PHYSADDR_MAX`] in length**.
-pub fn recv_async<'a>(
+/*pub fn recv_async<'a>(
     h: DlpiHandle,
     src: &'a mut [u8],
     msg: &'a mut [u8],
     info: Option<&'a mut sys::dlpi_recvinfo_t>,
 ) -> DlpiRecv<'a> {
     DlpiRecv::<'a> { h, src, msg, info }
+}
+*/
+
+pub async fn recv_async<'a>(
+    h: DlpiHandle,
+    src: &'a mut [u8],
+    msg: &'a mut [u8],
+    info: Option<&'a mut sys::dlpi_recvinfo_t>,
+) -> Result<(usize, usize)> {
+    let afd = tokio::io::unix::AsyncFd::new(fd(h)?)?;
+    let mut _guard = afd.readable().await?;
+    recv(
+        h, src, msg, 0, // non blocking
+        info,
+    )
 }
 
 impl<'a> Future for DlpiRecv<'a> {
@@ -287,8 +302,6 @@ pub fn close(h: DlpiHandle) {
 }
 
 fn check_return(ret: i32) -> Result<()> {
-    println!("checking {}", ret);
-
     if ret == sys::ResultCode::Success as i32 {
         return Ok(());
     }
