@@ -52,13 +52,58 @@ use std::os::raw::{c_char, c_void};
 use std::pin::Pin;
 use std::ptr;
 use std::task::{Context, Poll};
+use num_enum::TryFromPrimitive;
+use thiserror::Error;
 
-/// System level interfaces.
-pub mod sys;
+pub use libdlpi_sys as sys;
+
+/// Result of a DLPI operation.
+#[repr(i32)]
+#[derive(PartialEq, Eq, Error, Debug, Copy, Clone, TryFromPrimitive)]
+pub enum ResultCode {
+    #[error("success")]
+    Success = 10000, /* DLPI operation succeeded */
+    #[error("invalid argument")]
+    EInval, /* invalid argument */
+    #[error("invalid link name")]
+    ELinkNameInval, /* invalid DLPI linkname */
+    #[error("link does not exist")]
+    ENoLink, /* DLPI link does not exist */
+    #[error("bad link")]
+    EBadLink, /* bad DLPI link */
+    #[error("invalid handle")]
+    EInHandle, /* invalid DLPI handle */
+    #[error("operation timed out")]
+    ETimedout, /* DLPI operation timed out */
+    #[error("unsupported version")]
+    EVerNotSup, /* unsupported DLPI Version */
+    #[error("unsupported connection mode")]
+    EModeNotSup, /* unsupported DLPI connection mode */
+    #[error("unavailable service access point")]
+    EUnavailSAP, /* unavailable DLPI SAP */
+    #[error("failure")]
+    Failure, /* DLPI operation failed */
+    #[error("style-2 node reports style-1")]
+    ENotStyle2, /* DLPI style-2 node reports style-1 */
+    #[error("bad message")]
+    EBadMsg, /* bad DLPI message */
+    #[error("raw mode not supported")]
+    ERawNotSup, /* DLPI raw mode not supported */
+    #[error("invalid notification type")]
+    ENoteInval, /* invalid DLPI notification type */
+    #[error("notification not supported by link")]
+    ENoteNotSup, /* DLPI notification not supported by link */
+    #[error("invalid notification id")]
+    ENoteIdInval, /* invalid DLPI notification id */
+    #[error("ipnetinfo not supported")]
+    EIpNetInfoNotSup, /* DLPI_IPNETINFO not supported */
+    #[error("error max")]
+    ErrMax, /* Highest + 1 libdlpi error code */
+}
 
 /// A DLPI handle wrapper that implements `Send` and `Sync`.
 #[derive(Clone, Copy)]
-pub struct DlpiHandle(pub *mut sys::dlpi_handle);
+pub struct DlpiHandle(pub *mut sys::dlpi_handle_t);
 unsafe impl Send for DlpiHandle {}
 unsafe impl Sync for DlpiHandle {}
 
@@ -125,7 +170,7 @@ pub fn send(
 /// message bytes read).
 ///
 /// If no message is received within `msec` milliseconds, returns
-/// [`sys::ResultCode::ETimedout`].
+/// [`ResultCode::ETimedout`].
 ///
 /// **`src` must be at least [`sys::DLPI_PHYSADDR_MAX`] in length**.
 pub fn recv(
@@ -216,9 +261,9 @@ impl<'a> Future for DlpiRecv<'a> {
             )
         };
 
-        if ret == sys::ResultCode::Success as i32 {
+        if ret == ResultCode::Success as i32 {
             Poll::Ready(Ok((src_read, msg_read)))
-        } else if ret == sys::ResultCode::ETimedout as i32 {
+        } else if ret == ResultCode::ETimedout as i32 {
             cx.waker().wake_by_ref();
             Poll::Pending
         } else {
@@ -302,7 +347,7 @@ pub fn close(h: DlpiHandle) {
 }
 
 fn check_return(ret: i32) -> Result<()> {
-    if ret == sys::ResultCode::Success as i32 {
+    if ret == ResultCode::Success as i32 {
         return Ok(());
     }
 
@@ -314,7 +359,7 @@ fn to_io_error(ret: i32) -> Error {
         return Error::last_os_error();
     }
 
-    match sys::ResultCode::try_from(ret) {
+    match ResultCode::try_from(ret) {
         Ok(rc) => Error::new(ErrorKind::Other, rc),
         Err(_) => Error::from_raw_os_error(ret),
     }

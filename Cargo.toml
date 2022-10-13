@@ -1,11 +1,5 @@
-[package]
-name = "dlpi"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-libc = "0.2"
-thiserror = "1.0"
-num_enum = "0.5"
-pretty-hex = "0.2"
-tokio = { version = "1.18.1", features = ["full"] }
+[workspace]
+members = [
+	"libdlpi-sys",
+	"dlpi",
+]
