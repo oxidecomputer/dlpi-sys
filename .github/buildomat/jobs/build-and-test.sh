@@ -3,7 +3,7 @@
 #: name = "build-and-test"
 #: variety = "basic"
 #: target = "helios"
-#: rust_toolchain = "nightly-2021-09-03"
+#: rust_toolchain = "stable"
 #: output_rules = [ ]
 #:
 
