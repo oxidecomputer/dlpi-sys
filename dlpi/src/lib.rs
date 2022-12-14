@@ -46,13 +46,13 @@
 //! }
 //! ```
 
+use num_enum::TryFromPrimitive;
 use std::future::Future;
 use std::io::{Error, ErrorKind, Result};
 use std::os::raw::{c_char, c_void};
 use std::pin::Pin;
 use std::ptr;
 use std::task::{Context, Poll};
-use num_enum::TryFromPrimitive;
 use thiserror::Error;
 
 pub use libdlpi_sys as sys;

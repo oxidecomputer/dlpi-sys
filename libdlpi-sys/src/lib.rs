@@ -71,7 +71,6 @@ pub const DLPI_ENOTEIDINVAL: c_int = 10016;
 /// DLPI_IPNETINFO not supported
 pub const DLPI_EIPNETINFONOTSUP: c_int = 10017;
 
-
 /// Information used to send DLPI traffic.
 #[repr(C)]
 #[derive(Debug)]
