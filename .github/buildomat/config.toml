@@ -1,1 +1,6 @@
 enable = true
+
+allow_users = [
+        "oxide-renovate[bot]",
+        "renovate[bot]",
+]
