@@ -47,11 +47,14 @@
 //! ```
 
 use num_enum::TryFromPrimitive;
+#[cfg(feature = "async")]
 use std::future::Future;
 use std::io::{Error, ErrorKind, Result};
 use std::os::raw::{c_char, c_void};
+#[cfg(feature = "async")]
 use std::pin::Pin;
 use std::ptr;
+#[cfg(feature = "async")]
 use std::task::{Context, Poll};
 use thiserror::Error;
 
@@ -201,6 +204,7 @@ pub fn recv(
     Ok((src_read, msg_read))
 }
 
+#[cfg(feature = "async")]
 /// A receiver object returned from [`recv_async`] wrapped in a future. Calling
 /// `await` on this object yields the same result as [`recv`].
 pub struct DlpiRecv<'a> {
@@ -224,6 +228,7 @@ pub struct DlpiRecv<'a> {
 }
 */
 
+#[cfg(feature = "async")]
 pub async fn recv_async<'a>(
     h: DlpiHandle,
     src: &'a mut [u8],
@@ -238,6 +243,7 @@ pub async fn recv_async<'a>(
     )
 }
 
+#[cfg(feature = "async")]
 impl<'a> Future for DlpiRecv<'a> {
     type Output = Result<(usize, usize)>;
 
