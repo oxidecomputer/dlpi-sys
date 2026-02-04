@@ -1,0 +1,49 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="This is a crate for interacting with layer-2 network devices through DLPI. For more details on DLPI see `man dlpi` and `man libdlpi`."><title>dlpi - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="dlpi" data-themes="" data-resource-suffix="" data-rustdoc-version="1.93.0 (254b59607 2026-01-19)" data-channel="1.93.0" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-a3946164.js" data-settings-js="settings-c38705f0.js" ><script src="../static.files/storage-e2aeef58.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-a410ff4d.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-263c88ec.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">Crate dlpi</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../dlpi/index.html">dlpi</a><span class="version">0.2.0</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#reexports">Crate Items</a></h3><ul class="block"><li><a href="#reexports" title="Re-exports">Re-exports</a></li><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#enums" title="Enums">Enums</a></li><li><a href="#functions" title="Functions">Functions</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content"><div class="main-heading"><h1>Crate <span>dlpi</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/dlpi/lib.rs.html#1-375">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>This is a crate for interacting with layer-2 network devices through DLPI.
+For more details on DLPI see <code>man dlpi</code> and <code>man libdlpi</code>.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>std::io::Result;
+<span class="kw">use </span>std::thread::spawn;
+
+<span class="kw">fn </span>main() -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="comment">// L2 multicast address to send packets to
+    </span><span class="kw">let </span>mc = [<span class="number">0xff</span>, <span class="number">0xff</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x47</span>];
+
+    <span class="comment">// Open up an interface called sim0 and attach to the ethertype 0x4000
+    </span><span class="kw">let </span>dh_recv = dlpi::open(<span class="string">"sim0"</span>, <span class="number">0</span>).expect(<span class="string">"open recv"</span>);
+    dlpi::bind(dh_recv, <span class="number">0x4000</span>).expect(<span class="string">"bind recv"</span>);
+    dlpi::enable_multicast(dh_recv, <span class="kw-2">&amp;</span>mc).expect(<span class="string">"enable multicast"</span>);
+
+    <span class="comment">// strt a receiver thread
+    </span><span class="kw">let </span>t = spawn(<span class="kw">move </span>|| {
+
+        <span class="comment">// allocated buffers for a senders L2 address and a message
+        </span><span class="kw">let </span><span class="kw-2">mut </span>src = [<span class="number">0u8</span>; dlpi::sys::DLPI_PHYSADDR_MAX];
+        <span class="kw">let </span><span class="kw-2">mut </span>msg = [<span class="number">0</span>; <span class="number">256</span>];
+
+        <span class="comment">// wait for a message
+        </span><span class="kw">let </span>n = <span class="kw">match </span>dlpi::recv(dh_recv, <span class="kw-2">&amp;mut </span>src, <span class="kw-2">&amp;mut </span>msg, -<span class="number">1</span>, <span class="prelude-val">None</span>) {
+            <span class="prelude-val">Ok</span>((<span class="kw">_</span>, len)) =&gt; len,
+            <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">panic!</span>(<span class="string">"recv: {}"</span>, e),
+        };
+
+    });
+
+    <span class="comment">// Open up an interface called sim1 and attach to ethertype 0x4000
+    </span><span class="kw">let </span>dh_send = dlpi::open(<span class="string">"sim1"</span>, <span class="number">0</span>).expect(<span class="string">"send"</span>);
+    dlpi::bind(dh_send, <span class="number">0x4000</span>).expect(<span class="string">"bind"</span>);
+
+    <span class="comment">// Send a message
+    </span><span class="kw">let </span>message = <span class="string">b"do you know the muffin man?"</span>;
+    dlpi::send(dh_send, <span class="kw-2">&amp;</span>mc, <span class="kw-2">&amp;</span>message[..], <span class="prelude-val">None</span>).expect(<span class="string">"send"</span>);
+
+    <span class="comment">// wait on the receiver and then shut down
+    </span>t.join().expect(<span class="string">"join recv thread"</span>);
+    dlpi::close(dh_send);
+    dlpi::close(dh_recv);
+
+    <span class="prelude-val">Ok</span>(())
+}</code></pre></div></div></details><h2 id="reexports" class="section-header">Re-exports<a href="#reexports" class="anchor">§</a></h2><dl class="item-table reexports"><dt id="reexport.sys"><code>pub use <a class="mod" href="../libdlpi_sys/index.html" title="mod libdlpi_sys">libdlpi_sys</a> as sys;</code></dt></dl><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.DlpiHandle.html" title="struct dlpi::DlpiHandle">Dlpi<wbr>Handle</a></dt><dd>A DLPI handle wrapper that implements <code>Send</code> and <code>Sync</code>.</dd><dt><a class="struct" href="struct.DlpiRecv.html" title="struct dlpi::DlpiRecv">Dlpi<wbr>Recv</a></dt><dd>A receiver object returned from <a href="fn.recv_async.html" title="fn dlpi::recv_async"><code>recv_async</code></a> wrapped in a future. Calling
+<code>await</code> on this object yields the same result as <a href="fn.recv.html" title="fn dlpi::recv"><code>recv</code></a>.</dd><dt><a class="struct" href="struct.DropHandle.html" title="struct dlpi::DropHandle">Drop<wbr>Handle</a></dt><dd>A wrapper for DlpiHandle that closes the DLPI instance when dropped.</dd></dl><h2 id="enums" class="section-header">Enums<a href="#enums" class="anchor">§</a></h2><dl class="item-table"><dt><a class="enum" href="enum.ResultCode.html" title="enum dlpi::ResultCode">Result<wbr>Code</a></dt><dd>Result of a DLPI operation.</dd></dl><h2 id="functions" class="section-header">Functions<a href="#functions" class="anchor">§</a></h2><dl class="item-table"><dt><a class="fn" href="fn.bind.html" title="fn dlpi::bind">bind</a></dt><dd>Bind a DLPI link to a service access point type.</dd><dt><a class="fn" href="fn.close.html" title="fn dlpi::close">close</a></dt><dd>Close the provided handle.</dd><dt><a class="fn" href="fn.disable_multicast.html" title="fn dlpi::disable_multicast">disable_<wbr>multicast</a></dt><dd>Disable reception of messages destined to the provided layer-2 address.</dd><dt><a class="fn" href="fn.enable_multicast.html" title="fn dlpi::enable_multicast">enable_<wbr>multicast</a></dt><dd>Enable reception of messages destined to the provided layer-2 address.</dd><dt><a class="fn" href="fn.fd.html" title="fn dlpi::fd">fd</a></dt><dd>Get a file descriptor associated with the provided handle.</dd><dt><a class="fn" href="fn.open.html" title="fn dlpi::open">open</a></dt><dd>Creates a DLPI link instance.</dd><dt><a class="fn" href="fn.promisc_off.html" title="fn dlpi::promisc_off">promisc_<wbr>off</a></dt><dd>Disable promiscuous mode for the specified handle. See DL_PROMISC_* for
+levels.</dd><dt><a class="fn" href="fn.promisc_on.html" title="fn dlpi::promisc_on">promisc_<wbr>on</a></dt><dd>Enable promiscuous mode for the specified handle. See DL_PROMISC_* for
+levels.</dd><dt><a class="fn" href="fn.recv.html" title="fn dlpi::recv">recv</a></dt><dd>Receive a message from a DLPI link.</dd><dt><a class="fn" href="fn.recv_async.html" title="fn dlpi::recv_async">recv_<wbr>async</a></dt><dd>An <code>async</code> version of <a href="fn.recv.html" title="fn dlpi::recv"><code>recv</code></a>. Calling <code>await</code> on result yields same
+result as <a href="fn.recv.html" title="fn dlpi::recv"><code>recv</code></a>.</dd><dt><a class="fn" href="fn.send.html" title="fn dlpi::send">send</a></dt><dd>Send a message over a DLPI link.</dd></dl></section></div></main></body></html>

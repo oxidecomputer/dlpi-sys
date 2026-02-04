@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["ResultCode"],"fn":["bind","close","disable_multicast","enable_multicast","fd","open","promisc_off","promisc_on","recv","recv_async","send"],"struct":["DlpiHandle","DlpiRecv","DropHandle"]};
